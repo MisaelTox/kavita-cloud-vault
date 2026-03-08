@@ -1,100 +1,89 @@
 # Kavita Cloud Vault 📚☁️
 
-This project is a custom fork designed to host a private, persistent manga and ebook library on **AWS ECS Fargate**. It utilizes **Amazon EFS** to ensure your books and configurations survive even if the containers are restarted or destroyed.
+![Terraform CI/CD](https://github.com/MisaelTox/kavita-cloud-vault/actions/workflows/terraform.yml/badge.svg?branch=main)
+![AWS](https://img.shields.io/badge/AWS-ECS%20Fargate-orange?logo=amazon-aws)
+![Terraform](https://img.shields.io/badge/IaC-Terraform-purple?logo=terraform)
+
+AWS Cloud Infrastructure for a private, persistent manga and ebook library on **AWS ECS Fargate**, with automated CI/CD via **GitHub Actions**.
 
 ---
 
 ## 🏗️ Architecture
 
-The infrastructure deploys two synchronized services sharing a single persistent volume via **Amazon EFS**:
+| Component | Technology |
+|-----------|-----------|
+| Compute | AWS ECS Fargate (2 services) |
+| Storage | Amazon EFS (shared `/config` + `/data`) |
+| File Management | FileBrowser (Port 8080) |
+| Reader | Kavita (Port 5000) |
+| IaC | Terraform |
+| CI/CD | GitHub Actions |
 
-* **FileBrowser (Port 8080):** Your gateway for file management. Upload, delete, or organize your library files here.
-* **Kavita (Port 5000):** The ultimate reading suite. It indexes the files uploaded via FileBrowser and provides a high-quality reading interface.
+---
 
+## 🔄 CI/CD Pipeline
+```
+Push to main
+      ↓
+✅ terraform fmt     → format validation
+✅ terraform validate → syntax check
+✅ terraform plan    → AWS impact preview
+      ↓
+⏸️  Manual approval gate (production environment)
+      ↓
+🚀  terraform apply  → deploy to AWS
+```
 
+AWS credentials stored as **GitHub Secrets** — never hardcoded.
+
+---
+
+## 📸 Screenshots
+
+### 📂 FileBrowser — File Management (`http://<IP>:8080`)
+[![FileBrowser](img/filekavita.png)](img/filekavita.png)
+
+### 📖 Kavita — Reading Interface (`http://<IP>:5000`)
+[![Kavita Dashboard](img/mangakavita.png)](img/mangakavita.png)
 
 ---
 
 ## 🚀 Deployment
-
-### Prerequisites
-* **AWS CLI** installed and configured.
-* **Terraform 1.0+** installed.
-
-### Setup
-1.  **Clone and Init:**
-    ```bash
-    git clone https://github.com/MisaelTox/kavita-cloud-vault.git
-    cd kavita-cloud-vault
-    terraform init
-    ```
-2.  **Apply Infrastructure:**
-    ```bash
-    terraform apply
-    ```
-3.  **Network Configuration:**
-    Ensure the public subnet is associated with a **Route Table** that has a route to `0.0.0.0/0` via an **Internet Gateway (IGW)** to allow external access.
-
----
-
-## 📸 Screenshots & Usage Guide
-
-### 📂 Phase 1: Uploading (FileBrowser)
-Access the management UI at `http://<TASK_PUBLIC_IP>:8080`.
-
-![FileBrowser Interface](./img/filekavita.png)
-
-* **Default Login:** `admin` / `admin` (Please change this in Settings immediately).
-* **Workflow:** Files uploaded here are physically stored on the EFS volume under the `/srv` path.
-
-### 📖 Phase 2: Reading (Kavita)
-Access the reader UI at `http://<TASK_PUBLIC_IP>:5000`.
-
-![Kavita Login](./img/loginkavita.png)
-
-* **Setup:** Create your admin account on the first run.
-* **Library Path:** When adding a library, use the internal path: `/data`.
-* **Sync:** After uploading new files via FileBrowser, trigger a **Library Scan** in Kavita to update your collection.
-
-![Kavita Dashboard](./img/mangakavita.png)
-
----
-
-## 🛠️ Custom Modifications (Fork Features)
-
-* **Persistence:** Integrated **Amazon EFS** for both `/config` (database) and `/data` (media).
-* **Resource Tuning:** Optimized CPU and Memory units for cost-effective Fargate performance.
-* **Security Groups:** Pre-configured rules for ports `5000` and `8080`.
-
----
-
-## 💰 Cost Optimization
-
-To save money when you are not reading, scale the service to zero. Your files in EFS will be preserved:
-
 ```bash
-# Stop the server (Save money)
+git clone https://github.com/MisaelTox/kavita-cloud-vault.git
+cd kavita-cloud-vault/terraform
+terraform init
+terraform apply
+```
+
+**Library Path in Kavita:** `/data`
+**FileBrowser default login:** `admin` / `admin` *(change immediately)*
+
+---
+
+## 💰 Cost Control
+
+Scale to zero when not reading — EFS preserves all your files:
+```bash
+# Stop (save money)
 aws ecs update-service --cluster kavita-cluster --service kavita-service --desired-count 0
 
-# Start the server (Resume reading)
+# Resume
 aws ecs update-service --cluster kavita-cluster --service kavita-service --desired-count 1
-
 ```
----
-
-## 🤝 Acknowledgments & Credits
-
-This project is a **custom fork** built upon the work of the original creators. 
-
-* **Kavita:** Thanks to the [Kavita team](https://www.kavitareader.com/) for their amazing open-source e-reader.
-* **FileBrowser:** Thanks to the [FileBrowser project](https://filebrowser.org/) for the powerful file management tool.
-
-### 🛠️ Fork Enhancements by MisaelTox:
-- Implementation of **Amazon EFS** for full data persistence.
-- Unified storage bridge between FileBrowser and Kavita.
-- Automated security group and networking reliability fixes.
 
 ---
 
-## 📜 License
-This project is licensed under the same terms as the original repository. Please check the original license file for more details.
+## 📝 Lessons Learned
+
+- **CI/CD with GitHub Actions** — automated Terraform validation pipeline with manual approval gate for production deploys
+- **Shared EFS volumes** — bridged two containers (FileBrowser + Kavita) via a single EFS mount for unified storage
+- **Multi-service ECS** — managed two Fargate tasks sharing the same VPC and security groups
+- **Cost optimization** — implemented scale-to-zero pattern to avoid charges when idle
+
+---
+
+## 🤝 Credits
+
+- [Kavita](https://www.kavitareader.com/) — open-source manga/ebook reader
+- [FileBrowser](https://filebrowser.org/) — web-based file manager
