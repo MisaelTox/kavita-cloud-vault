@@ -26,7 +26,7 @@ resource "aws_subnet" "kavita_public_subnet" {
   cidr_block              = "10.0.1.0/24"
   map_public_ip_on_launch = true
   availability_zone       = "${var.aws_region}a"
-  tags                 = { Name = "${var.project_name}-public-subnet" }
+  tags                    = { Name = "${var.project_name}-public-subnet" }
 }
 
 # 4. Internet Gateway
@@ -131,7 +131,7 @@ resource "aws_ecs_task_definition" "kavita_task" {
     }
   }
 
-container_definitions = jsonencode([
+  container_definitions = jsonencode([
     {
       name         = "kavita"
       image        = "lscr.io/linuxserver/kavita:latest"
@@ -205,8 +205,8 @@ resource "aws_iam_role" "ecs_task_execution_role" {
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Action = "sts:AssumeRole"
-      Effect = "Allow"
+      Action    = "sts:AssumeRole"
+      Effect    = "Allow"
       Principal = { Service = "ecs-tasks.amazonaws.com" }
     }]
   })
