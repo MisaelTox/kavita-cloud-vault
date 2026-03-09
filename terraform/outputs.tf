@@ -1,12 +1,11 @@
 output "kavita_public_ip" {
-  description = "IP pública del servidor de Kavita. Úsala con el puerto 5000."
-  value       = "Accede a tu servidor en: http://${aws_ecs_service.kavita_service.name}.la-ip-la-veras-en-la-consola-ecs"
-  # Nota técnica: Obtener la IP dinámica de Fargate directamente en Terraform 
-  # es un poco complejo sin un Load Balancer, pero te enseñaré a verla 
-  # rápido con un comando de AWS CLI o desde la consola.
+  description = "Kavita server access info. Find the public IP in the ECS console."
+  value       = "Access your server at: http://<ECS-TASK-PUBLIC-IP>:5000"
+  # Note: Fargate dynamic IPs cannot be retrieved directly via Terraform without a Load Balancer.
+  # Use the AWS CLI or ECS console to find the assigned public IP after deployment.
 }
 
 output "efs_id" {
-  description = "ID del sistema de archivos EFS"
+  description = "EFS file system ID used for persistent Kavita storage"
   value       = aws_efs_file_system.kavita_storage.id
 }

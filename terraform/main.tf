@@ -1,4 +1,4 @@
-# 1. Definir el proveedor y la región
+# 1. Provider and region configuration
 terraform {
   required_providers {
     aws = {
@@ -20,7 +20,7 @@ resource "aws_vpc" "kavita_vpc" {
   tags                 = { Name = "${var.project_name}-vpc" }
 }
 
-# 3. Subred
+# 3. Public Subnet
 resource "aws_subnet" "kavita_public_subnet" {
   vpc_id                  = aws_vpc.kavita_vpc.id
   cidr_block              = "10.0.1.0/24"
@@ -35,7 +35,7 @@ resource "aws_internet_gateway" "kavita_igw" {
   tags   = { Name = "${var.project_name}-igw" }
 }
 
-# 5. Routing
+# 5. Route Table
 resource "aws_route_table" "kavita_rt" {
   vpc_id = aws_vpc.kavita_vpc.id
   route {
@@ -49,7 +49,7 @@ resource "aws_route_table_association" "kavita_rta" {
   route_table_id = aws_route_table.kavita_rt.id
 }
 
-# 6. Almacenamiento EFS
+# 6. EFS Storage
 resource "aws_efs_file_system" "kavita_storage" {
   creation_token = "kavita-storage"
   encrypted      = true
@@ -103,7 +103,7 @@ resource "aws_security_group" "kavita_sg" {
   }
 }
 
-# 8. CloudWatch Logs (Para ver qué pasa si no arranca)
+# 8. CloudWatch Log Group
 resource "aws_cloudwatch_log_group" "kavita_logs" {
   name              = "/ecs/kavita"
   retention_in_days = 7
@@ -114,7 +114,7 @@ resource "aws_ecs_cluster" "kavita_cluster" {
   name = "kavita-cluster"
 }
 
-# 10. Task Definition (SIDE-BY-SIDE)
+# 10. ECS Task Definition
 resource "aws_ecs_task_definition" "kavita_task" {
   family                   = "kavita-task"
   network_mode             = "awsvpc"
@@ -179,7 +179,7 @@ resource "aws_ecs_task_definition" "kavita_task" {
         }
       }
     }
-  ]) # <--- Aquí estaba el cierre que faltaba
+  ]) # closing bracket for container_definitions
 }
 
 # 11. ECS Service
