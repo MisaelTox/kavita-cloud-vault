@@ -15,3 +15,7 @@ variable "timezone" {
   type        = string
   default     = "America/Mexico_City"
 }
+variable "admin_cidr" {
+  description = "CIDR allowed to reach the FileBrowser admin UI (e.g. your IP as x.x.x.x/32)"
+  type        = string
+}

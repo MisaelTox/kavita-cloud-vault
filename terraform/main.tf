@@ -87,7 +87,7 @@ resource "aws_security_group" "kavita_sg" {
     from_port   = 8080
     to_port     = 8080
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [var.admin_cidr]
   }
   ingress {
     from_port   = 5000
@@ -161,7 +161,6 @@ resource "aws_ecs_task_definition" "kavita_task" {
       essential    = true
       portMappings = [{ containerPort = 8080, hostPort = 8080 }]
       command = [
-        "--noauth",
         "--address", "0.0.0.0",
         "--port", "8080",
         "--root", "/srv",
